@@ -67,7 +67,7 @@ View and download structured data for further use.
 
 Collaborators
 1.Archana A L : Building ML Model,Backend Integration 
-2.Sanjana S N: Building ML Model,Backend Integration.
+2.Sanjana S N: Building ML Model,Backend Integration
 3.Ananya A S: UI and Frontend Integration
 4.Chaithra M:UI and Frontend Integration
 
