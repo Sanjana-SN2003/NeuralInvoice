@@ -1,7 +1,7 @@
-#NeuralInvoice
+# NeuralInvoice
 NeuralInvoice is an AI-driven invoice parser that combines Optical Character Recognition (OCR) and Generative AI (GenAI) to intelligently extract, analyze, and structure data from invoices and bills. It provides a user-friendly interface and optional chatbot support to streamline business billing workflows with reduced manual effort and increased accuracy.
 
-🚀 Features
+## 🚀 Features
 🔍 OCR-Based Data Extraction using advanced techniques to pull key fields (invoice number, date, GSTIN, total, etc.)
 
 🤖 GenAI-Powered Template Population for accurate and structured invoice interpretation
@@ -12,7 +12,7 @@ NeuralInvoice is an AI-driven invoice parser that combines Optical Character Rec
 
 📦 Export Capability to integrate structured data with external systems
 
-🛠️ Tech Stack
+## 🛠️ Tech Stack
 Python 3.x
 
 OCR Engine (EasyOCR or similar)
@@ -23,7 +23,7 @@ HTML/CSS for front-end
 
 Optional: FastAPI for backend services (extendable)
 
-📂 Project Structure
+## 📂 Project Structure
 graphql
 Copy
 Edit
@@ -34,8 +34,8 @@ NeuralInvoice/
 ├── invoice.jpg          # Sample invoice image
 ├── 70ByteBuilders.pptx  # Presentation overview of the project
 └── README.md            # Project documentation
-📥 Installation & Setup
-Clone the Repository
+## 📥 Installation & Setup
+### Clone the Repository
 
 bash
 Copy
@@ -56,7 +56,7 @@ Edit
 python extract_bill.py
 Access the UI Open index.html in your browser to upload an invoice and see the output.
 
-📸 Sample Workflow
+## 📸 Sample Workflow
 Upload an invoice (.jpg, .png, etc.).
 
 The system extracts key fields using OCR.
@@ -65,18 +65,18 @@ GenAI refines and fills structured templates.
 
 View and download structured data for further use.
 
-Collaborators
+## Collaborators
 1.Archana A L : Building ML Model,Backend Integration 
 2.Sanjana S N: Building ML Model,Backend Integration
 3.Ananya A S: UI and Frontend Integration
 4.Chaithra M:UI and Frontend Integration
 
-🤝 Contributing
+## 🤝 Contributing
 Contributions are welcome! If you have ideas to improve the extraction pipeline, enhance the UI, or expand template support, feel free to fork the repo and create a pull request.
 
-📄 License
+## 📄 License
 This project is licensed under the MIT License. See the LICENSE file for more details.
 
-📧 Contact
+## 📧 Contact
 For any queries or collaborations, feel free to connect with the project maintainer via GitHub.
 
