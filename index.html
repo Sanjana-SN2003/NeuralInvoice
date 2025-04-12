@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill Extractor</title>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --secondary-color: #f9fafb;
+            --text-color: #111827;
+            --border-color: #e5e7eb;
+            --error-color: #ef4444;
+            --success-color: #10b981;
+            --export-color: #059669;
+            --warning-color: #f59e0b;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f3f4f6;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+        
+        .subtitle {
+            color: #6b7280;
+            font-size: 1.1rem;
+        }
+        
+        .upload-section {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 0.5rem;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--primary-color);
+            background-color: var(--secondary-color);
+        }
+        
+        .upload-area.active {
+            border-color: var(--primary-color);
+            background-color: rgba(79, 70, 229, 0.05);
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .options {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .option-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        label {
+            font-weight: 500;
+        }
+        
+        select, input[type="checkbox"] {
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.25rem;
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+        
+        button:hover {
+            background-color: #4338ca;
+        }
+        
+        button:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+        }
+        
+        .preview-section {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .image-preview {
+            flex: 1;
+            min-width: 300px;
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .image-preview img {
+            max-width: 100%;
+            max-height: 400px;
+            display: block;
+            margin: 0 auto;
+            border-radius: 0.25rem;
+        }
+        
+        .results {
+            flex: 2;
+            min-width: 300px;
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .result-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 1rem;
+        }
+        
+        .tab {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .tab.active {
+            border-bottom: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        pre {
+            background-color: var(--secondary-color);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        
+        .status {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        
+        .status.error {
+            background-color: #fee2e2;
+            color: var(--error-color);
+            display: block;
+        }
+        
+        .status.success {
+            background-color: #d1fae5;
+            color: var(--success-color);
+            display: block;
+        }
+        
+        .status.warning {
+            background-color: #fef3c7;
+            color: var(--warning-color);
+            display: block;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 0.5rem;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .health-status {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: #f3f4f6;
+        }
+        
+        .status-badge::before {
+            content: "";
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        
+        .status-good::before {
+            background-color: var(--success-color);
+        }
+        
+        .status-bad::before {
+            background-color: var(--error-color);
+        }
+        
+        .status-warning::before {
+            background-color: var(--warning-color);
+        }
+        
+        .connection-status {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            font-weight: 500;
+            background-color: #f3f4f6;
+        }
+        
+        .export-buttons {
+            margin-top: 1rem;
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .export-buttons button {
+            width: auto;
+            padding: 0.75rem 1.5rem;
+            background-color: var(--export-color);
+        }
+        
+        .export-buttons button:hover {
+            background-color: #047857;
+        }
+        
+        .debug-console {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: monospace;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .debug-toggle {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+        
+        .retry-button {
+            background-color: var(--warning-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            margin-left: 0.5rem;
+        }
+        
+        .retry-button:hover {
+            background-color: #d97706;
+        }
+        
+        @media (max-width: 768px) {
+            .preview-section {
+                flex-direction: column;
+            }
+            
+            .options {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .export-buttons {
+                flex-direction: column;
+            }
+            
+            .export-buttons button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AI Bill Extractor</h1>
+            <p class="subtitle">Upload an invoice image to extract structured data</p>
+        </header>
+        
+        <div id="connectionStatus" class="connection-status">
+            <span id="connectionText">Connecting to API...</span>
+            <button id="retryConnection" class="retry-button" style="display: none;">Retry</button>
+        </div>
+        <div class="health-status" id="healthStatus"></div>
+        
+        <div class="upload-section">
+            <div class="status" id="statusMessage"></div>
+            
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📄</div>
+                <h3>Drag & Drop your invoice image here</h3>
+                <p>or click to browse files</p>
+                <input type="file" id="fileInput" class="file-input" accept="image/*">
+            </div>
+            
+            <div class="options">
+                <div class="option-group">
+                    <input type="checkbox" id="useAI" checked>
+                    <label for="useAI">Use AI Enhancement</label>
+                </div>
+                
+                <div class="option-group">
+                    <label for="outputFormat">Output Format:</label>
+                    <select id="outputFormat">
+                        <option value="json">JSON</option>
+                        <option value="pretty">Formatted</option>
+                    </select>
+                </div>
+                
+                <div class="option-group">
+                    <input type="checkbox" id="saveToFile" checked>
+                    <label for="saveToFile">Save to File</label>
+                </div>
+            </div>
+            
+            <button id="extractBtn" disabled>Extract Bill Data</button>
+        </div>
+        
+        <div class="preview-section" id="previewSection" style="display: none;">
+            <div class="image-preview">
+                <h3>Bill Preview</h3>
+                <img id="imagePreview" src="" alt="Invoice preview">
+            </div>
+            
+            <div class="results">
+                <div class="result-tabs">
+                    <div class="tab active" data-tab="structured">Structured Data</div>
+                    <div class="tab" data-tab="raw">Raw OCR Text</div>
+                </div>
+                
+                <div class="tab-content active" id="structuredData">
+                    <pre id="structuredResult">No data extracted yet</pre>
+                </div>
+                
+                <div class="tab-content" id="rawText">
+                    <pre id="rawOcrText">No OCR text available</pre>
+                </div>
+            </div>
+            
+            <div class="export-buttons">
+                <button id="downloadExcel" disabled>Download Excel</button>
+            </div>
+        </div>
+        
+        <button id="toggleDebug" class="debug-toggle">Show Debug Console</button>
+        <div class="debug-console" id="debugConsole"></div>
+    </div>
+
+    <script>
+        // DOM elements
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const extractBtn = document.getElementById('extractBtn');
+        const previewSection = document.getElementById('previewSection');
+        const imagePreview = document.getElementById('imagePreview');
+        const structuredResult = document.getElementById('structuredResult');
+        const rawOcrText = document.getElementById('rawOcrText');
+        const useAICheckbox = document.getElementById('useAI');
+        const outputFormatSelect = document.getElementById('outputFormat');
+        const saveToFileCheckbox = document.getElementById('saveToFile');
+        const statusMessage = document.getElementById('statusMessage');
+        const healthStatus = document.getElementById('healthStatus');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const connectionText = document.getElementById('connectionText');
+        const retryButton = document.getElementById('retryConnection');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const tabs = document.querySelectorAll('.tab');
+        const downloadExcelBtn = document.getElementById('downloadExcel');
+        const toggleDebugBtn = document.getElementById('toggleDebug');
+        const debugConsole = document.getElementById('debugConsole');
+        
+        // Current state
+        let currentFile = null;
+        let API_BASE_URL = null;
+        let currentInvoiceData = null;
+        let debugMode = false;
+        let connectionChecker = null;
+        
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', async () => {
+            setupEventListeners();
+            await connectToAPI();
+            
+            // Check connection every 5 seconds if not connected
+            connectionChecker = setInterval(async () => {
+                if (!API_BASE_URL) {
+                    logDebug('Periodic API connection check...');
+                    await connectToAPI();
+                }
+            }, 5000);
+        });
+        
+        function logDebug(message, type = 'info') {
+            const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
+            const messageElement = document.createElement('div');
+            
+            switch (type) {
+                case 'error':
+                    messageElement.style.color = '#f87171';
+                    break;
+                case 'success':
+                    messageElement.style.color = '#4ade80';
+                    break;
+                case 'warning':
+                    messageElement.style.color = '#fbbf24';
+                    break;
+                default:
+                    messageElement.style.color = '#60a5fa';
+            }
+            
+            messageElement.textContent = `[${timestamp}] ${message}`;
+            debugConsole.appendChild(messageElement);
+            debugConsole.scrollTop = debugConsole.scrollHeight;
+        }
+        
+        async function connectToAPI() {
+            // Try multiple possible API endpoints
+            const possibleEndpoints = [
+                'http://localhost:8000',
+                'http://127.0.0.1:8000',
+                window.location.origin
+            ];
+            
+            logDebug('Attempting to connect to API...');
+            
+            for (const endpoint of possibleEndpoints) {
+                try {
+                    logDebug(`Trying endpoint: ${endpoint}`);
+                    const response = await fetch(`${endpoint}/api/health`, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        logDebug(`Connected to API at ${endpoint}`, 'success');
+                        logDebug(`API Status: ${JSON.stringify(data)}`);
+                        
+                        API_BASE_URL = endpoint;
+                        connectionText.textContent = `Connected to: ${endpoint}`;
+                        connectionStatus.style.color = 'green';
+                        retryButton.style.display = 'none';
+                        
+                        // Update health status display
+                        updateHealthStatus(data);
+                        
+                        // Clear the connection checker if we're connected
+                        if (connectionChecker) {
+                            clearInterval(connectionChecker);
+                        }
+                        
+                        return true;
+                    } else {
+                        logDebug(`Endpoint ${endpoint} returned status ${response.status}`, 'warning');
+                    }
+                } catch (e) {
+                    logDebug(`Failed to connect to ${endpoint}: ${e.message}`, 'error');
+                }
+            }
+            
+            connectionText.textContent = 'Could not connect to API server. Make sure the backend is running.';
+            connectionStatus.style.color = 'red';
+            retryButton.style.display = 'inline-block';
+            return false;
+        }
+        
+        function updateHealthStatus(healthData) {
+            healthStatus.innerHTML = '';
+            
+            const statusItems = [
+                { label: 'API', value: healthData.api },
+                { label: 'Gemini', value: healthData.gemini },
+                { label: 'Phi-2', value: healthData.phi2 },
+                { label: 'OCR', value: healthData.ocr },
+                { label: 'Device', value: healthData.device }
+            ];
+            
+            statusItems.forEach(item => {
+                const badge = document.createElement('div');
+                badge.className = 'status-badge';
+                
+                let statusClass = '';
+                if (item.value === 'running' || item.value === 'connected' || item.value === 'ready') {
+                    statusClass = 'status-good';
+                } else if (item.value === 'disconnected' || item.value === 'not ready') {
+                    statusClass = 'status-bad';
+                } else {
+                    statusClass = 'status-warning';
+                }
+                
+                badge.innerHTML = `
+                    <span class="${statusClass}"></span>
+                    ${item.label}: ${item.value}
+                `;
+                
+                healthStatus.appendChild(badge);
+            });
+        }
+        
+        function setupEventListeners() {
+            // File upload handling
+            uploadArea.addEventListener('click', () => fileInput.click());
+            
+            fileInput.addEventListener('change', handleFileSelect);
+            
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('active');
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('active');
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('active');
+                
+                if (e.dataTransfer.files.length) {
+                    fileInput.files = e.dataTransfer.files;
+                    handleFileSelect({ target: fileInput });
+                }
+            });
+            
+            // Extract button
+            extractBtn.addEventListener('click', extractInvoiceData);
+            
+            // Excel download button
+            downloadExcelBtn.addEventListener('click', exportToExcel);
+            
+            // Tab switching
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    
+                    tab.classList.add('active');
+                    const tabId = tab.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+            
+            // Retry connection button
+            retryButton.addEventListener('click', async () => {
+                retryButton.disabled = true;
+                retryButton.innerHTML = '<span class="loading"></span> Retrying...';
+                await connectToAPI();
+                retryButton.disabled = false;
+                retryButton.textContent = 'Retry';
+            });
+            
+            // Debug console toggle
+            toggleDebugBtn.addEventListener('click', () => {
+                debugMode = !debugMode;
+                debugConsole.style.display = debugMode ? 'block' : 'none';
+                toggleDebugBtn.textContent = debugMode ? 'Hide Debug Console' : 'Show Debug Console';
+            });
+        }
+        
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Validate file type
+            if (!file.type.match('image.*')) {
+                showStatus('Please upload an image file (JPEG, PNG, etc.)', 'error');
+                return;
+            }
+            
+            // Check file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showStatus('File size too large (max 5MB)', 'error');
+                return;
+            }
+            
+            currentFile = file;
+            extractBtn.disabled = false;
+            
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imagePreview.src = e.target.result;
+                previewSection.style.display = 'flex';
+            };
+            reader.readAsDataURL(file);
+            
+            showStatus('File ready for processing', 'success');
+        }
+        
+        async function extractInvoiceData() {
+            if (!currentFile || !API_BASE_URL) return;
+            
+            try {
+                showStatus('Processing invoice...', 'success');
+                extractBtn.disabled = true;
+                extractBtn.innerHTML = '<span class="loading"></span> Processing...';
+                downloadExcelBtn.disabled = true;
+                
+                const formData = new FormData();
+                formData.append('file', currentFile);
+                formData.append('use_ai', useAICheckbox.checked);
+                formData.append('output_format', outputFormatSelect.value);
+                formData.append('save_to_file', saveToFileCheckbox.checked);
+                
+                logDebug('Sending extraction request to API...');
+                const response = await fetch(`${API_BASE_URL}/api/extract`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to extract invoice data');
+                }
+                
+                const data = await response.json();
+                logDebug('Received response from API:', 'success');
+                logDebug(JSON.stringify(data, null, 2));
+                
+                currentInvoiceData = data.data || data;
+                
+                // Display results
+                if (outputFormatSelect.value === 'pretty') {
+                    structuredResult.textContent = data.formatted || formatStructuredData(currentInvoiceData);
+                } else {
+                    structuredResult.textContent = JSON.stringify(currentInvoiceData, null, 2);
+                }
+                
+                // Show raw OCR text if available
+                if (data.ocr_text) {
+                    rawOcrText.textContent = data.ocr_text;
+                }
+                
+                downloadExcelBtn.disabled = false;
+                showStatus('Invoice processed successfully!', 'success');
+            } catch (error) {
+                console.error('Error:', error);
+                logDebug(`Extraction error: ${error.message}`, 'error');
+                showStatus(error.message, 'error');
+            } finally {
+                extractBtn.disabled = false;
+                extractBtn.textContent = 'Extract Invoice Data';
+            }
+        }
+        
+        async function exportToExcel() {
+            if (!currentInvoiceData || !API_BASE_URL) return;
+            
+            try {
+                downloadExcelBtn.disabled = true;
+                downloadExcelBtn.innerHTML = '<span class="loading"></span> Exporting...';
+                logDebug('Exporting to Excel...');
+                
+                // Prepare the data in the required format
+                const exportData = {
+                    invoice_info: currentInvoiceData.invoice_info || {},
+                    company_info: currentInvoiceData.company_info || {},
+                    financial_info: currentInvoiceData.financial_info || {},
+                    products: currentInvoiceData.products || []
+                };
+                
+                // Clean up products data
+                exportData.products = exportData.products.map(product => {
+                    return {
+                        product_name: product.product_name || 'N/A',
+                        quantity: product.quantity || 'N/A',
+                        unit_price: product.unit_price || 'N/A',
+                        total_price: product.total_price || 'N/A'
+                    };
+                });
+                
+                const response = await fetch(`${API_BASE_URL}/api/export-excel`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(exportData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to export to Excel');
+                }
+                
+                // Create download link
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `invoice_export_${new Date().toISOString().slice(0,10)}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                
+                logDebug('Excel export completed', 'success');
+                showStatus('Excel exported successfully!', 'success');
+            } catch (error) {
+                console.error('Export error:', error);
+                logDebug(`Export error: ${error.message}`, 'error');
+                showStatus(error.message, 'error');
+            } finally {
+                downloadExcelBtn.disabled = false;
+                downloadExcelBtn.textContent = 'Download Excel';
+            }
+        }
+        
+        function formatStructuredData(data) {
+            let result = '';
+            
+            // Invoice Info
+            result += `=== INVOICE INFORMATION ===\n`;
+            result += `Number: ${data.invoice_info?.invoice_number || 'N/A'}\n`;
+            result += `Date: ${data.invoice_info?.invoice_date || 'N/A'}\n`;
+            result += `Time: ${data.invoice_info?.invoice_time || 'N/A'}\n\n`;
+            
+            // Company Info
+            result += `=== COMPANY INFORMATION ===\n`;
+            result += `Name: ${data.company_info?.name || 'N/A'}\n`;
+            result += `GST Number: ${data.company_info?.gst_number || 'N/A'}\n\n`;
+            
+            // Financial Info
+            result += `=== FINANCIAL INFORMATION ===\n`;
+            result += `Subtotal: ${data.financial_info?.subtotal || 'N/A'}\n`;
+            result += `Tax Amount: ${data.financial_info?.tax_amount || 'N/A'}\n`;
+            result += `Total Amount: ${data.financial_info?.total_amount || 'N/A'}\n`;
+            result += `Payment Method: ${data.financial_info?.payment_method || 'N/A'}\n\n`;
+            
+            // Products
+            if (data.products?.length > 0) {
+                result += `=== PRODUCTS (${data.products.length}) ===\n`;
+                data.products.forEach((product, index) => {
+                    result += `Product ${index + 1}:\n`;
+                    result += `  Name: ${product.product_name}\n`;
+                    result += `  Quantity: ${product.quantity}\n`;
+                    result += `  Unit Price: ${product.unit_price}\n`;
+                    result += `  Total Price: ${product.total_price}\n\n`;
+                });
+            }
+            
+            return result;
+        }
+        
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.className = `status ${type}`;
+            statusMessage.style.display = 'block';
+            logDebug(`Status: ${message}`, type);
+            
+            // Auto-hide success messages after 5 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusMessage.style.display = 'none';
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>
